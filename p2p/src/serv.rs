@@ -6,25 +6,22 @@ use crate::peer::Peer;
 use crate::error::Error;
 
 pub struct Server {
-    pub host: IpAddr,
-    pub port: u16,
+    addr: SocketAddr,
     peers: Peers,
 }
 
 
 impl Server {
-    pub fn new(port: u16) -> Server {
+    pub fn new(addr: &str) -> Server {
         Server {
-            host: IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)),
-            port,
+            addr: addr.parse().unwrap(),
             peers: Peers::new(),
         }
     }
 
-    pub fn listen(self) -> Result<(), Error> {
-        println!("Listen on {}:{}", self.host, self.port);
-        let addr = SocketAddr::new(self.host, self.port);
-        let listener = TcpListener::bind(addr)?;
+    pub fn listen(&self) -> Result<(), Error> {
+        println!("Listen on {}", self.addr);
+        let listener = TcpListener::bind(self.addr)?;
         listener.set_nonblocking(true)?;
         let sleep_time = Duration::from_millis(5);
         loop {

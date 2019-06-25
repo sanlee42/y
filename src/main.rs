@@ -5,22 +5,26 @@ use y_p2p as p2p;
 
 
 fn main() {
-    let matches = App::new("y peer")
-        .version("0.1")
-        .author("fikgol")
+    let matches = App::new("y")
+        .version("v0.1")
+        .author("@fikgol")
         .about("y peer command line client")
         .arg(Arg::with_name("bind")
-            .help("bind tcp listener port")
-            .default_value("65535").short("b")
-        ).get_matches();
+            .help("Bind tcp listener").short("b")
+            .default_value("127.0.0.1:65535")
+        )
+        .arg(Arg::with_name("connect")
+            .help("Connect to the peer").short("c")
+        )
+        .get_matches();
 
-    let port = if let Some(b) = matches.value_of("bind") {
-        b.parse::<u16>().expect("Invalid port")
+    let listener = if let Some(b) = matches.value_of("bind") {
+        b
     } else {
-        65535
+        "127.0.0.1:8558"
     };
-    println!("listen on port:{}", port);
-    let p2p_server = p2p::serv::Server::new(port);
 
-    spawn(|| p2p_server.listen()).join().unwrap();
+    let p2p_server = p2p::serv::Server::new(listener);
+
+    spawn(move || p2p_server.listen()).join().unwrap();
 }
