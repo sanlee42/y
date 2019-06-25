@@ -1,9 +1,7 @@
 [package]
-name = "p2p"
+name = "y_p2p"
 version = "0.1.0"
 authors = ["fikgol <hit.cs.lijun@gmail.com>"]
 edition = "2018"
+workspace = ".."
 
-[dependencies]
-tokio = "0.1"
-futures = "0.1"

@@ -5,3 +5,8 @@ authors = ["fikgol <hit.cs.lijun@gmail.com>"]
 edition = "2018"
 
 [dependencies]
+clap = "2.31.2"
+y_p2p = { path = "./p2p", version = "0.1.0" }
+
+[workspace]
+members = ["p2p","crypto"]

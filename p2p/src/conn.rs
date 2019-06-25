@@ -1,56 +1,63 @@
-use futures;
-use std::collections::HashMap;
-use std::env;
-use std::io::BufReader;
-use std::iter;
-use std::sync::{Arc, Mutex};
-use tokio;
-use tokio::io;
-use tokio::net::TcpListener;
-use tokio::prelude::*;
+use std::net::TcpStream;
+use std::thread;
+use std::sync::mpsc::{SyncSender, sync_channel, Receiver};
+use std::time;
+
+use crate::io::{read_exact, write_all};
+use crate::error::Error;
 
 pub struct Conn {
-    socket: TcpListener,
-
+    poll: Polled,
 }
 
+const WRITE_CHANNEL_CAP: usize = 10;
+const READ_CHANNEL_CAP: usize = 10;
+const MSG_LEN: usize = 16;
+
+pub struct Polled {
+    write_sender: SyncSender<Vec<u8>>,
+    read_reciver: Receiver<Vec<u8>>,
+}
 
 impl Conn {
-    pub fn new() -> Self {
-        let addr = "127.0.0.1:8080".parse()?;
-        let socket = TcpListener::bind(addr)?;
-        Self {
-            socket,
-        }
+    pub fn new(stream: TcpStream) -> Result<Conn, Error> {
+        poll(stream).map(|polled| Conn { poll: polled })
+        //match poll(stream) {
+        //Ok(polled) => Ok(Conn { poll: polled }),
+        //Err(e) => Err(e),
+        //}
     }
+}
 
-    pub fn listen(self) {
-        let connections = Arc::new(Mutex::new(HashMap::new()));
-
-        self.socket.incoming().map_err(|e| {
-            println!("failed to accept socket; error = {:?}", e);
-            e
-        }).for_each(
-            move |stream| {
-                let addr = stream.peer_addr()?;
-                println!("New Connection: {}", addr);
-                let (reader, writer) = stream.split();
-                let (tx, rx) = futures::sync::mpsc::unbounded();
-                connections.lock().unwrap().insert(addr, tx);
-                let connections_inner = connections.clone();
-                let reader = BufReader::new(reader);
-                let iter = stream::iter_ok::<_, io::Error>(iter::repeat(()));
-                let socket_reader = iter.fold(reader, move |reader, _| {
-                    // Read a line off the socket, failing if we're at EOF
-                    let line = io::read_until(reader, b'\n', Vec::new());
-                    let line = line.and_then(|(reader, vec)| {
-                        if vec.len() == 0 {
-                            Err(io::Error::new(io::ErrorKind::BrokenPipe, "broken pipe"))
-                        } else {
-                            Ok((reader, vec))
-                        }
-                    });
-                },
-                )
+fn poll(stream: TcpStream) -> Result<Polled, Error> {
+    let (write_sender, write_reciver) = sync_channel::<Vec<u8>>(WRITE_CHANNEL_CAP);
+    let (read_sender, read_reciver) = sync_channel::<Vec<u8>>(READ_CHANNEL_CAP);
+    let mut read_stream = stream.try_clone().expect("Clone conn for reader failed");
+    let mut write_stream = stream.try_clone().expect("Clone conn for reader failed");
+// TODO: error in thread
+    let _ = thread::Builder::new().name("peer_poll_read".to_string()).
+        spawn(move || {
+            loop {
+// Read
+                let mut data = vec![0u8; MSG_LEN];
+                let _ = read_exact(&mut read_stream, &mut data, time::Duration::from_secs(10), true);
+                read_sender.send(data);
+                thread::sleep(time::Duration::from_millis(5));
             }
-    }
+        });
+    let _ = thread::Builder::new().name("peer_poll_write".to_string()).
+        spawn(move || {
+            loop {
+// Write
+                if let Ok(data) = write_reciver.recv() {
+                    let _ = write_all(&mut write_stream, &data, time::Duration::from_secs(10));
+                }
+                thread::sleep(time::Duration::from_millis(5));
+            }
+        }
+        );
+    Ok(Polled {
+        write_sender,
+        read_reciver,
+    })
+}

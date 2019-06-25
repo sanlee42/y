@@ -7,3 +7,7 @@ mod tests {
 }
 mod conn;
 mod peer;
+pub mod serv;
+mod peers;
+mod io;
+mod error;
