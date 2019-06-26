@@ -24,4 +24,8 @@ impl Peers {
         self.peers.write().unwrap().insert(peer.addr, peer);
         Ok(())
     }
+
+    pub fn broadcast(&self, msg: &str) {
+        unimplemented!()
+    }
 }

@@ -1,9 +1,13 @@
 use std::net::{IpAddr, SocketAddr, TcpListener, TcpStream, Ipv4Addr};
 use std::time::Duration;
-use std::io;
+use std::{io, thread, time};
 use crate::peers::Peers;
 use crate::peer::Peer;
 use crate::error::Error;
+
+pub trait P2p {
+    fn broadcast(&self, msg: &str);
+}
 
 pub struct Server {
     addr: SocketAddr,
@@ -20,15 +24,16 @@ impl Server {
     }
 
     pub fn listen(&self) -> Result<(), Error> {
-        println!("Listen on {}", self.addr);
+        println!("Binding p2p server on {}", self.addr);
         let listener = TcpListener::bind(self.addr)?;
         listener.set_nonblocking(true)?;
-        let sleep_time = Duration::from_millis(5);
+        let sleep_time = Duration::from_millis(10);
         loop {
+            thread::sleep(sleep_time);
             match listener.accept() {
                 Ok((stream, peer_addr)) => {
-                    println!("Find new peer:{}", peer_addr);
-                    self.peers.add_peer(Peer::new(peer_addr, stream))?
+                    println!("Find new peer connecting:{:?}", peer_addr);
+                    self.peers.add_peer(Peer::new(peer_addr, stream))?;
                 }
                 Err(ref e) if e.kind() == io::ErrorKind::WouldBlock => {
                     // Wait util network socket is ready or just retry later
@@ -48,5 +53,11 @@ impl Server {
             Ok(stream) => Ok(Peer::new(addr, stream)),
             Err(e) => Err(Error::Connection(e))
         }
+    }
+}
+
+impl P2p for Server {
+    fn broadcast(&self, msg: &str) {
+        println!("broadcast msg:{:?}", msg);
     }
 }
