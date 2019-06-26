@@ -1,7 +1,8 @@
 use clap::{App, Arg};
-use std::thread::spawn;
+use std::thread;
 
 use y_p2p as p2p;
+use std::sync::Arc;
 
 
 fn main() {
@@ -14,7 +15,7 @@ fn main() {
             .default_value("127.0.0.1:65535")
         )
         .arg(Arg::with_name("connect")
-            .help("Connect to the peer").short("c")
+            .help("Connect to the peer").short("c").empty_values(false)
         )
         .get_matches();
 
@@ -24,7 +25,14 @@ fn main() {
         "127.0.0.1:8558"
     };
 
-    let p2p_server = p2p::serv::Server::new(listener);
+    let peer = matches.value_of("peer").unwrap();
 
-    spawn(move || p2p_server.listen()).join().unwrap();
+    let p2p_server = Arc::new(p2p::serv::Server::new(listener));
+    let listen_srv = p2p_server.clone();
+    let srv_handle = thread::Builder::new().name("p2p_server".to_string()).spawn(move ||
+        listen_srv.listen()
+    ).unwrap();
+    p2p_server.connect(peer).expect("Failed to connect peer");
+
+    srv_handle.join();
 }

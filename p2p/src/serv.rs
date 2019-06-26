@@ -27,6 +27,7 @@ impl Server {
         loop {
             match listener.accept() {
                 Ok((stream, peer_addr)) => {
+                    println!("Find new peer:{}", peer_addr);
                     self.peers.add_peer(Peer::new(peer_addr, stream))?
                 }
                 Err(ref e) if e.kind() == io::ErrorKind::WouldBlock => {
@@ -41,7 +42,8 @@ impl Server {
         Ok(())
     }
 
-    pub fn connect(&self, addr: SocketAddr) -> Result<Peer, Error> {
+    pub fn connect(&self, addr: &str) -> Result<Peer, Error> {
+        let addr = addr.parse().unwrap();
         match TcpStream::connect_timeout(&addr, Duration::from_secs(10)) {
             Ok(stream) => Ok(Peer::new(addr, stream)),
             Err(e) => Err(Error::Connection(e))
