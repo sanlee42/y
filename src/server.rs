@@ -6,7 +6,6 @@ use y_p2p::serv::P2p;
 
 pub struct Server {}
 
-
 impl Server {
     pub fn new() -> Server {
         Server {}
@@ -15,6 +14,7 @@ impl Server {
         let receiver = self.listen();
         loop {
             match receiver.recv() {
+
                 Ok(msg) => broadcaster.broadcast(msg),
                 Err(_) => break
             }
@@ -25,10 +25,9 @@ impl Server {
         let (sender, reciver) = sync_channel(10);
 
         thread::spawn(move ||
-            for i in 1..100 {
+            for i in 1..5 {
                 thread::sleep(time::Duration::from_millis(10));
                 let mock_msg = format!("starcoin see ya: {:?}", i);
-
                 if sender.send(mock_msg).is_err() {
                     break;
                 }

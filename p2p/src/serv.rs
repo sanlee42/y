@@ -58,6 +58,7 @@ impl Server {
 
 impl P2p for Server {
     fn broadcast(&self, msg: String) {
-        println!("broadcast msg:{:?}", msg);
+        println!("To broadcast msg:{:?}", msg);
+        self.peers.broadcast_msg(msg);
     }
 }

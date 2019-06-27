@@ -7,26 +7,33 @@ use crate::io::{read_exact, write_all};
 use crate::error::Error;
 use std::sync::{Arc, Mutex};
 
+#[derive(Clone)]
 pub struct Conn {
-    poll: Polled,
+    pub poll: Polled,
 }
 
 const WRITE_CHANNEL_CAP: usize = 10;
 const READ_CHANNEL_CAP: usize = 10;
 const MSG_LEN: usize = 16;
 
+#[derive(Clone)]
 pub struct Polled {
     write_sender: SyncSender<Vec<u8>>,
-    read_reciver: Arc<Mutex<Receiver<Vec<u8>>>>
+    read_reciver: Arc<Mutex<Receiver<Vec<u8>>>>,
+}
+
+impl Polled {
+    pub fn send(&self, msg: String) -> Result<(), Error> {
+        let body_buf = msg.as_bytes();
+        self.write_sender.send(Vec::from(body_buf)).unwrap();
+        Ok(())
+    }
+
 }
 
 impl Conn {
     pub fn new(stream: TcpStream) -> Result<Conn, Error> {
         poll(stream).map(|polled| Conn { poll: polled })
-        //match poll(stream) {
-        //Ok(polled) => Ok(Conn { poll: polled }),
-        //Err(e) => Err(e),
-        //}
     }
 }
 
