@@ -26,7 +26,7 @@ impl Server {
 
         thread::spawn(move ||
             for i in 1..5 {
-                thread::sleep(time::Duration::from_millis(10));
+                thread::sleep(time::Duration::from_millis(1000));
                 let mock_msg = format!("starcoin see ya: {:?}", i);
                 if sender.send(mock_msg).is_err() {
                     break;

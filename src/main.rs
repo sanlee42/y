@@ -23,7 +23,7 @@ fn main() {
     } else {
         "127.0.0.1:8558"
     };
-    let peer = matches.value_of("connect").expect("Invalid connect peer");
+
 
     // Start p2p network server
     let p2p_server = Arc::new(p2p::serv::Server::new(listener));
@@ -34,11 +34,12 @@ fn main() {
     thread::sleep(time::Duration::from_secs(2));
 
     // Connect to the peer
-    p2p_server.connect(peer).expect("Failed to connect peer");
-
-    let y_srv = y::server::Server::new();
+    if let Some(peer) = matches.value_of("connect") {
+        p2p_server.connect(peer).expect("Failed to connect peer")
+    }
 
     //TODO: Put to thread
+    let y_srv = y::server::Server::new();
     y_srv.run(p2p_server);
 
     // Join server

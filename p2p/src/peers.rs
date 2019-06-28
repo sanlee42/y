@@ -43,6 +43,7 @@ impl Peers {
         peers.shuffle(&mut thread_rng());
 
         for peer in peers {
+            println!("peers in loop:{:?}", peer.addr);
             match op(&peer) {
                 Ok(_) => {
                     count += 1;
@@ -51,7 +52,7 @@ impl Peers {
                     println!("Failed to broadcast to peer:{:?}", peer.addr);// TODO:Remove from peers
                 }
             }
-            if count >= BROAD_CAST_NUM {
+            if count > BROAD_CAST_NUM {
                 break;
             }
         }

@@ -1,5 +1,5 @@
 use std::net::TcpStream;
-use std::thread;
+use std::{thread, io};
 use std::sync::mpsc::{SyncSender, sync_channel, Receiver};
 use std::time;
 
@@ -14,12 +14,12 @@ pub struct Conn {
 
 const WRITE_CHANNEL_CAP: usize = 10;
 const READ_CHANNEL_CAP: usize = 10;
-const MSG_LEN: usize = 16;
+const MSG_LEN: usize = 18;
 
 #[derive(Clone)]
 pub struct Polled {
     write_sender: SyncSender<Vec<u8>>,
-    read_reciver: Arc<Mutex<Receiver<Vec<u8>>>>,
+    pub read_reciver: Arc<Mutex<Receiver<Vec<u8>>>>,
 }
 
 impl Polled {
@@ -28,7 +28,6 @@ impl Polled {
         self.write_sender.send(Vec::from(body_buf)).unwrap();
         Ok(())
     }
-
 }
 
 impl Conn {
@@ -44,11 +43,17 @@ fn poll(stream: TcpStream) -> Result<Polled, Error> {
     let _ = thread::Builder::new().name("peer_poll_read".to_string()).
         spawn(move || {
             loop {
+                thread::sleep(time::Duration::from_millis(5));
                 // Read
                 let mut data = vec![0u8; MSG_LEN];
-                let _ = read_exact(&mut read_stream, &mut data, time::Duration::from_secs(10), true);
+                if let Err(e) = read_exact(&mut read_stream,
+                                           &mut data,
+                                           time::Duration::from_secs(1),
+                                           true) {
+                    continue;
+                }
+                println!("read from stream:{:?}", data);
                 read_sender.send(data).unwrap();
-                thread::sleep(time::Duration::from_millis(5));
             }
         });
 
@@ -59,6 +64,7 @@ fn poll(stream: TcpStream) -> Result<Polled, Error> {
             loop {
                 // Write
                 if let Ok(data) = write_reciver.recv() {
+                    println!("writing tcpstream:{:?}", data);
                     let _ = write_all(&mut write_stream, &data, time::Duration::from_secs(10));
                 }
                 thread::sleep(time::Duration::from_millis(5));
