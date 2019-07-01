@@ -39,8 +39,10 @@ fn main() {
     }
 
     //TODO: Put to thread
-    let y_srv = y::server::Server::new();
-    y_srv.run(p2p_server);
+    //let y_srv = y::server::Server::new();
+    //y_srv.run(p2p_server);
+
+    y::web_serv::start_web_srv();
 
     // Join server
     let _ = srv_handle.join().expect("Failed to join p2p server thread");
