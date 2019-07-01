@@ -1,18 +1,19 @@
-use actix_web::{App,Result, http, web, HttpResponse, HttpServer};
+use actix_web::{App, Result, http, web, HttpResponse, HttpServer};
 use serde_derive::{Deserialize, Serialize};
-use std::{thread,time};
+use std::{thread, time};
+
 #[derive(Debug, Serialize, Deserialize)]
 struct Message {
-    nonce: String,
+    nonce: u32,
+    bytes: String
 }
 
 fn handle_msg(msg: web::Json<Message>) -> HttpResponse {
-    thread::sleep(time::Duration::from_secs(5));
     println!("nonce:{:?}", msg.nonce);
-    HttpResponse::Ok().json(msg.0)
+    HttpResponse::Ok().json(msg.nonce)
 }
 
-pub fn start_web_srv()-> std::io::Result<()> {
+pub fn start_web_srv() -> std::io::Result<()> {
     HttpServer::new(|| {
         App::new()
             .service(
