@@ -14,7 +14,7 @@ pub struct Conn {
 
 const WRITE_CHANNEL_CAP: usize = 1;
 const READ_CHANNEL_CAP: usize = 1;
-const MSG_LEN: usize = 6;
+const MSG_LEN: usize = 46;
 
 #[derive(Clone)]
 pub struct Polled {
