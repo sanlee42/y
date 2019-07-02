@@ -58,7 +58,7 @@ impl Peers {
         }
     }
 
-    pub fn broadcast_msg(&self, msg: String) {
+    pub fn broadcast_msg(&self, msg: Vec<u8>) {
         self.broadcast(|peer| peer.send(msg.clone()));
     }
 }

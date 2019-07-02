@@ -19,9 +19,8 @@ pub struct Polled {
 }
 
 impl Polled {
-    pub fn send(&self, msg: String) -> Result<(), Error> {
-        let body_buf = msg.as_bytes();
-        self.write_sender.send(Vec::from(body_buf)).unwrap();
+    pub fn send(&self, msg: Vec<u8>) -> Result<(), Error> {
+        self.write_sender.send(msg).unwrap();
         Ok(())
     }
 }

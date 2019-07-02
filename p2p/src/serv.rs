@@ -6,7 +6,7 @@ use crate::peer::Peer;
 use crate::error::Error;
 
 pub trait P2p {
-    fn broadcast(&self, msg: String);
+    fn broadcast(&self, msg: Vec<u8>);
 }
 
 pub struct Server {
@@ -61,7 +61,7 @@ impl Server {
 }
 
 impl P2p for Server {
-    fn broadcast(&self, msg: String) {
+    fn broadcast(&self, msg: Vec<u8>) {
         println!("Broadcasting msg:{:?}", msg);
         self.peers.broadcast_msg(msg);
     }

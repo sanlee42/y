@@ -5,11 +5,11 @@ use base64;
 use crypto::sha2::Sha256;
 use crypto::digest::Digest;
 use std::mem::transmute;
+use std::convert::TryInto;
 
-pub fn process_msg(msg: &String) -> Result<(), Error> {
-    let data: Vec<_> = msg.split(",").collect();
-    // TODO: split error
-    let (nonce, body) = (data[0].parse::<i32>()?, data[1].to_string());
+
+pub fn process_msg(msg: &[u8]) -> Result<(), Error> {
+    let (nonce, body) = decode_msg(msg);
     let body = String::from_utf8(
         base64::decode_config(&body, base64::URL_SAFE)?).unwrap();
 
@@ -25,8 +25,16 @@ pub fn u32_to_vec(input: u32) -> Vec<u8> {
     bytes.to_vec()
 }
 
-pub fn encode_msg(nonce: u32, mut body: String) -> Vec<u8> {
+pub fn encode_msg(nonce: u32, body: &mut String) -> Vec<u8> {
     let mut msg = u32_to_vec(nonce);
-    msg.append(unsafe { body.as_mut_vec() });
+    msg.append(body.as_bytes().to_vec().as_mut());
+    //msg.append(unsafe { body.as_mut_vec() });
     msg
+}
+
+pub fn decode_msg(msg: &[u8]) -> (u32, &[u8]) {
+    let (mut nonce, body) = msg.split_at(4);
+
+    let nonce = u32::from_be_bytes(nonce.try_into().unwrap());
+    return (nonce, body);
 }

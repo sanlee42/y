@@ -2,6 +2,7 @@ use actix_web::{App, web, HttpResponse, HttpServer};
 use serde_derive::{Deserialize, Serialize};
 use std::sync::{mpsc, Arc};
 use std::thread;
+use y_p2p::util as util;
 use y_p2p as p2p;
 use y_p2p::serv::P2p;
 
@@ -25,17 +26,17 @@ struct Message {
 }
 
 
-fn handle_msg(sender: web::Data<Arc<mpsc::SyncSender<String>>>, msg: web::Json<Message>) -> HttpResponse {
+fn handle_msg(sender: web::Data<Arc<mpsc::SyncSender<Vec<u8>>>>, msg: web::Json<Message>) -> HttpResponse {
 
-    let body = msg.bytes.clone();
-    let b = p2p::util::encode_msg(msg.nonce, body);
+    let mut body = msg.bytes.clone();
+    let b = util::encode_msg(msg.nonce, &mut body);
 
     let msg_str = format!("{:?},{}", msg.nonce, msg.bytes);
-    sender.send(msg_str).unwrap();
+    sender.send(b).unwrap();
     HttpResponse::Ok().json(msg.nonce)
 }
 
-pub fn start_web_srv(addr: String) -> Arc<mpsc::Receiver<String>> {
+pub fn start_web_srv(addr: String) -> Arc<mpsc::Receiver<Vec<u8>>> {
     println!("Start web server on {}", addr);
     let (sender, reciver) = mpsc::sync_channel(10);
     let sender = web::Data::new(Arc::new(sender));
