@@ -16,6 +16,8 @@ fn main() {
         .arg(Arg::with_name("connect")
             .help("Connect to the peer").short("c").empty_values(false)
         )
+        .arg(Arg::with_name("http").short("t").default_value("127.0.0.1:8080")
+            .help("Bind web server for receiving msg"))
         .get_matches();
 
     let listener = if let Some(b) = matches.value_of("bind") {
@@ -38,11 +40,10 @@ fn main() {
         p2p_server.connect(peer).expect("Failed to connect peer")
     }
 
-    //TODO: Put to thread
-    //let y_srv = y::server::Server::new();
-    //y_srv.run(p2p_server);
-
-    y::web_serv::start_web_srv();
+    // Start message receive web server
+    if let Some(addr) = matches.value_of("http") {
+        y::web_serv::run(addr.to_string(), p2p_server);
+    }
 
     // Join server
     let _ = srv_handle.join().expect("Failed to join p2p server thread");

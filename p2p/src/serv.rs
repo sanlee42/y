@@ -24,7 +24,7 @@ impl Server {
     }
 
     pub fn listen(&self) -> Result<(), Error> {
-        println!("Binding p2p server on {}", self.addr);
+        println!("Start p2p server on {}", self.addr);
         let listener = TcpListener::bind(self.addr)?;
         listener.set_nonblocking(true)?;
         let sleep_time = Duration::from_millis(10);
@@ -62,7 +62,7 @@ impl Server {
 
 impl P2p for Server {
     fn broadcast(&self, msg: String) {
-        println!("To broadcast msg:{:?}", msg);
+        println!("Broadcasting msg:{:?}", msg);
         self.peers.broadcast_msg(msg);
     }
 }

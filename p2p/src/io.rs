@@ -22,6 +22,7 @@ pub fn read_exact(
                 ));
             }
             Ok(n) => {
+                println!("read:{:?}", n);
                 let tmp = buf;
                 buf = &mut tmp[n..];
                 read += n;

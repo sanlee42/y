@@ -12,9 +12,9 @@ pub struct Conn {
     pub poll: Polled,
 }
 
-const WRITE_CHANNEL_CAP: usize = 10;
-const READ_CHANNEL_CAP: usize = 10;
-const MSG_LEN: usize = 18;
+const WRITE_CHANNEL_CAP: usize = 1;
+const READ_CHANNEL_CAP: usize = 1;
+const MSG_LEN: usize = 6;
 
 #[derive(Clone)]
 pub struct Polled {
@@ -52,7 +52,7 @@ fn poll(stream: TcpStream) -> Result<Polled, Error> {
                                            true) {
                     continue;
                 }
-                println!("read from stream:{:?}", data);
+                println!("Read from stream:{:?}", data);
                 read_sender.send(data).unwrap();
             }
         });
@@ -64,7 +64,7 @@ fn poll(stream: TcpStream) -> Result<Polled, Error> {
             loop {
                 // Write
                 if let Ok(data) = write_reciver.recv() {
-                    println!("writing tcpstream:{:?}", data);
+                    println!("Write to tcpstream:{:?}", data);
                     let _ = write_all(&mut write_stream, &data, time::Duration::from_secs(10));
                 }
                 thread::sleep(time::Duration::from_millis(5));

@@ -33,6 +33,6 @@ impl Peer {
     pub fn recv(&self) {
         let msg = self.con.poll.read_reciver.lock().unwrap().recv().unwrap();
         let msg= String::from_utf8(msg).unwrap();
-        println!("recv:{:?}", msg);
+        println!("Recived: {:?}", msg);
     }
 }

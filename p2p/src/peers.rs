@@ -43,7 +43,7 @@ impl Peers {
         peers.shuffle(&mut thread_rng());
 
         for peer in peers {
-            println!("peers in loop:{:?}", peer.addr);
+            println!("Pick a peer to broadcast: {:?}", peer.addr);
             match op(&peer) {
                 Ok(_) => {
                     count += 1;
