@@ -26,7 +26,9 @@ struct Message {
 
 
 fn handle_msg(sender: web::Data<Arc<mpsc::SyncSender<String>>>, msg: web::Json<Message>) -> HttpResponse {
-    println!("nonce:{:?}", msg.nonce);
+
+    let body = msg.bytes.clone();
+    let b = p2p::util::encode_msg(msg.nonce, body);
 
     let msg_str = format!("{:?},{}", msg.nonce, msg.bytes);
     sender.send(msg_str).unwrap();

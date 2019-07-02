@@ -1,8 +1,10 @@
 use crate::error::Error;
+use crate::consts;
+
 use base64;
 use crypto::sha2::Sha256;
 use crypto::digest::Digest;
-
+use std::mem::transmute;
 
 pub fn process_msg(msg: &String) -> Result<(), Error> {
     let data: Vec<_> = msg.split(",").collect();
@@ -16,4 +18,15 @@ pub fn process_msg(msg: &String) -> Result<(), Error> {
     let hex = hasher.result_str();
     println!("nonce is {}, body is {:?}, hex:{}", nonce, body, hex);
     Ok(())
+}
+
+pub fn u32_to_vec(input: u32) -> Vec<u8> {
+    let bytes: [u8; 4] = unsafe { transmute(input.to_be()) };
+    bytes.to_vec()
+}
+
+pub fn encode_msg(nonce: u32, mut body: String) -> Vec<u8> {
+    let mut msg = u32_to_vec(nonce);
+    msg.append(unsafe { body.as_mut_vec() });
+    msg
 }

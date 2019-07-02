@@ -2,7 +2,7 @@ use std::net::TcpStream;
 use std::{thread, io};
 use std::sync::mpsc::{SyncSender, sync_channel, Receiver};
 use std::time;
-
+use crate::consts::{MSG_LEN, READ_CHANNEL_CAP, WRITE_CHANNEL_CAP};
 use crate::io::{read_exact, write_all};
 use crate::error::Error;
 use std::sync::{Arc, Mutex};
@@ -11,10 +11,6 @@ use std::sync::{Arc, Mutex};
 pub struct Conn {
     pub poll: Polled,
 }
-
-const WRITE_CHANNEL_CAP: usize = 1;
-const READ_CHANNEL_CAP: usize = 1;
-const MSG_LEN: usize = 46;
 
 #[derive(Clone)]
 pub struct Polled {

@@ -10,5 +10,6 @@ mod peer;
 mod peers;
 mod io;
 mod error;
-mod util;
+mod consts;
+pub mod util;
 pub mod serv;
