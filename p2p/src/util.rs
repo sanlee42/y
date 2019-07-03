@@ -8,16 +8,16 @@ use std::mem::transmute;
 use std::convert::TryInto;
 
 
-pub fn process_msg(msg: &[u8]) -> Result<(), Error> {
+pub fn process_msg(msg: &[u8], preHash: String) -> Result<((u32, String)), Error> {
     let (nonce, body) = decode_msg(msg);
-    let body = String::from_utf8(
-        base64::decode_config(&body, base64::URL_SAFE)?).unwrap();
+    let body = base64::decode_config(&body, base64::URL_SAFE)?;
 
     let mut hasher = Sha256::new();
-    hasher.input_str(&body);
-    let hex = hasher.result_str();
-    println!("nonce is {}, body is {:?}, hex:{}", nonce, body, hex);
-    Ok(())
+    hasher.input(&body);
+    let hash = hasher.result_str();
+    let hash = format!("{}:{}", preHash, hash);
+    println!("process msg, nonce {}, body {:?}, hex:{}", nonce, body, hash);
+    Ok((nonce, hash))
 }
 
 pub fn u32_to_vec(input: u32) -> Vec<u8> {
