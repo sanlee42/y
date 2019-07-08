@@ -4,6 +4,7 @@ use std::{io, thread, time};
 use crate::peers::Peers;
 use crate::peer::Peer;
 use crate::error::Error;
+use std::sync::Arc;
 
 pub trait P2p {
     fn broadcast(&self, msg: Vec<u8>);
@@ -33,7 +34,8 @@ impl Server {
             match listener.accept() {
                 Ok((stream, peer_addr)) => {
                     println!("Find new peer connecting:{:?}", peer_addr);
-                    self.peers.add_peer(Peer::new(peer_addr, stream))?;
+                    let peer = Arc::new(Peer::new(peer_addr, stream));
+                    self.peers.add_peer(Peer::listen(peer))?;
                 }
                 Err(ref e) if e.kind() == io::ErrorKind::WouldBlock => {
                     // Wait util network socket is ready or just retry later
@@ -48,13 +50,13 @@ impl Server {
     }
 
     pub fn connect(&self, addr: &str) -> Result<(), Error> {
-
         let addr = addr.parse().unwrap();
         match TcpStream::connect_timeout(&addr, Duration::from_secs(10)) {
             Ok(stream) => {
-                self.peers.add_peer(Peer::new(addr, stream));
+                let peer = Arc::new(Peer::new(addr, stream));
+                self.peers.add_peer(Peer::listen(peer));
                 Ok(())
-            },
+            }
             Err(e) => Err(Error::Connection(e))
         }
     }

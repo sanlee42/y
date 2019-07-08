@@ -3,13 +3,13 @@ use std::net::SocketAddr;
 use crate::error::Error;
 use crate::peer::Peer;
 use crate::error::Error::PeerExist;
-use std::sync::RwLock;
+use std::sync::{RwLock, Arc};
 use rand::thread_rng;
 use rand::seq::SliceRandom;
 
 
 pub struct Peers {
-    peers: RwLock<HashMap<SocketAddr, Peer>>
+    peers: RwLock<HashMap<SocketAddr, Arc<Peer>>>
 }
 
 const BROAD_CAST_NUM: usize = 2;
@@ -21,7 +21,7 @@ impl Peers {
         }
     }
 
-    pub fn add_peer(&self, peer: Peer) -> Result<(), Error> {
+    pub fn add_peer(&self, peer: Arc<Peer>) -> Result<(), Error> {
         if self.peers.read().unwrap().contains_key(&peer.addr) == true {
             return Err(PeerExist);
         }

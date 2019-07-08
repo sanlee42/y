@@ -26,7 +26,11 @@ impl Peer {
             addr,
             data: Option::None,
         };
-        let _peer = peer.clone();
+        peer
+    }
+
+    pub fn listen(peer: Arc<Peer>) -> Arc<Peer> {
+        let _peer=peer.clone();
         thread::spawn(move ||
             loop {
                 _peer.recv(util::process_msg);
@@ -56,3 +60,4 @@ impl Peer {
         }
     }
 }
+
