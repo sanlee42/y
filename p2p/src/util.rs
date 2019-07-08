@@ -36,7 +36,7 @@ pub fn encode_msg(nonce: u32, body: &mut String) -> Vec<u8> {
 }
 
 pub fn decode_msg(msg: &[u8]) -> (u32, &[u8]) {
-    let (mut nonce, body) = msg.split_at(4);
+    let (nonce, body) = msg.split_at(4);
 
     let nonce = u32::from_be_bytes(nonce.try_into().unwrap());
     return (nonce, body);
