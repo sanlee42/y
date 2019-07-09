@@ -3,9 +3,11 @@ use std::net::SocketAddr;
 use crate::error::Error;
 use crate::peer::Peer;
 use crate::error::Error::PeerExist;
+use crate::util;
 use std::sync::{RwLock, Arc};
 use rand::thread_rng;
 use rand::seq::SliceRandom;
+use std::thread;
 
 
 pub struct Peers {
@@ -21,10 +23,16 @@ impl Peers {
         }
     }
 
-    pub fn add_peer(&self, peer: Arc<Peer>) -> Result<(), Error> {
+    pub fn add_peer(&self, mut peer: Arc<Peer>) -> Result<(), Error> {
         if self.peers.read().unwrap().contains_key(&peer.addr) == true {
             return Err(PeerExist);
         }
+        let mut _peer = Arc::make_mut(&mut peer).clone();
+        thread::spawn(move ||
+            loop {
+                let msg = _peer.recv(util::process_msg);
+            }
+        );
         self.peers.write().unwrap().insert(peer.addr, peer);
         Ok(())
     }
@@ -60,5 +68,12 @@ impl Peers {
 
     pub fn broadcast_msg(&self, msg: Vec<u8>) {
         self.broadcast(|peer| peer.send(msg.clone()));
+    }
+
+    pub fn forward(peers: Peers) {
+        thread::spawn(|| {
+            peers
+        }
+        );
     }
 }

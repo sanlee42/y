@@ -49,17 +49,21 @@ impl Peer {
         Ok(())
     }
 
-    pub fn recv<F>(&mut self, op: F)
+    pub fn recv<F>(&mut self, op: F) -> Vec<u8>
         where
             F: Fn(&[u8], String) -> Result<((u32, String)), Error>
     {
         let msg = self.con.poll.read_reciver.lock().unwrap().recv().unwrap();
         match op(&msg, self.hash.clone()) {
-            Err(e) => println!("Failed to process msg:{:?}, err:{}", msg, e),
+            Err(e) => {
+                println!("Failed to process msg:{:?}, err:{}", msg, e);
+                msg
+            }
             Ok((nonce, hash)) => {
                 println!("Final nonce:{},{}", nonce, hash);
                 self.latest = nonce;
                 self.hash = hash;
+                msg
             }
         }
     }
