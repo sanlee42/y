@@ -35,7 +35,7 @@ impl Server {
                 Ok((stream, peer_addr)) => {
                     println!("Find new peer connecting:{:?}", peer_addr);
                     let peer = Arc::new(Peer::new(peer_addr, stream));
-                    self.peers.add_peer(Peer::listen(peer))?;
+                    self.peers.add_peer(peer)?;
                 }
                 Err(ref e) if e.kind() == io::ErrorKind::WouldBlock => {
                     // Wait util network socket is ready or just retry later
@@ -54,7 +54,7 @@ impl Server {
         match TcpStream::connect_timeout(&addr, Duration::from_secs(10)) {
             Ok(stream) => {
                 let peer = Arc::new(Peer::new(addr, stream));
-                self.peers.add_peer(Peer::listen(peer));
+                self.peers.add_peer(peer);
                 Ok(())
             }
             Err(e) => Err(Error::Connection(e))
@@ -65,6 +65,6 @@ impl Server {
 impl P2p for Server {
     fn broadcast(&self, msg: Vec<u8>) {
         println!("Broadcasting msg:{:?}", msg);
-        self.peers.broadcast_msg(msg);
+        Peers::broadcast_msg(self.peers.peers.clone(), msg);
     }
 }

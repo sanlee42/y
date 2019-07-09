@@ -34,17 +34,7 @@ impl Peer {
         peer
     }
 
-    pub fn listen(mut peer: Arc<Peer>) -> Arc<Peer> {
-        let mut _peer = Arc::make_mut(&mut peer).clone();
-        thread::spawn(move ||
-            loop {
-                _peer.recv(util::process_msg);
-            }
-        );
-        peer
-    }
-
-    pub fn send(&self, msg: Vec<u8>) -> Result<(), Error> {
+     pub fn send(&self, msg: Vec<u8>) -> Result<(), Error> {
         self.con.poll.send(msg)?;
         Ok(())
     }
