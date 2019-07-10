@@ -34,26 +34,39 @@ impl Peer {
         peer
     }
 
-     pub fn send(&self, msg: Vec<u8>) -> Result<(), Error> {
+    pub fn send(&self, msg: Vec<u8>) -> Result<(), Error> {
         self.con.poll.send(msg)?;
         Ok(())
     }
 
-    pub fn recv<F>(&mut self, op: F) -> Vec<u8>
+    pub fn recv<F>(&mut self, op: F) -> Option<Vec<u8>>
         where
             F: Fn(&[u8], String) -> Result<((u32, String)), Error>
     {
         let msg = self.con.poll.read_reciver.lock().unwrap().recv().unwrap();
         match op(&msg, self.hash.clone()) {
             Err(e) => {
-                println!("Failed to process msg:{:?}, err:{}", msg, e);
-                msg
+                println!("Failed to process msg: {:?}, err: {}", msg, e);
+                Option::None
             }
             Ok((nonce, hash)) => {
-                println!("Final nonce:{},{}", nonce, hash);
-                self.latest = nonce;
-                self.hash = hash;
-                msg
+                //println!("Recive nonce, hash: {}, {}", nonce, hash);
+                match self.latest >= nonce {
+                    true => Option::None,
+                    false => {
+                        match self.latest + 1 == nonce {
+                            true => {
+                                self.latest += 1;
+                                self.hash = util::update_hash(self.hash.clone(), hash);
+                                println!("The latest nonce: {}, hash: {}", self.latest, self.hash)
+                            }
+                            false => {
+                                //TODO: Buffer it.
+                            }
+                        }
+                        Option::Some(msg)
+                    }
+                }
             }
         }
     }

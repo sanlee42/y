@@ -47,7 +47,7 @@ fn poll(stream: TcpStream) -> Result<Polled, Error> {
                                            true) {
                     continue;
                 }
-                println!("Read from stream:{:?}", data);
+                //println!("Read from stream:{:?}", data);
                 read_sender.send(data).unwrap();
             }
         });
@@ -59,7 +59,7 @@ fn poll(stream: TcpStream) -> Result<Polled, Error> {
             loop {
                 // Write
                 if let Ok(data) = write_reciver.recv() {
-                    println!("Write to tcpstream:{:?}", data);
+                    //println!("Write to tcpstream:{:?}", data);
                     let _ = write_all(&mut write_stream, &data, time::Duration::from_secs(10));
                 }
                 thread::sleep(time::Duration::from_millis(5));

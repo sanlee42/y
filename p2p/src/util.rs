@@ -11,16 +11,17 @@ use std::convert::TryInto;
 pub fn process_msg(msg: &[u8], preHash: String) -> Result<((u32, String)), Error> {
     let (nonce, body) = decode_msg(msg);
     let body = base64::decode_config(&body, base64::URL_SAFE)?;
-
     let mut hasher = Sha256::new();
     hasher.input(&body);
-    let curr_hash = hasher.result_str();
-    let new_hash = format!("{}:{}", preHash, curr_hash);
-    hasher.reset();
-    hasher.input(&new_hash.into_bytes());
     let hash = hasher.result_str();
-    println!("process msg, nonce {}, body {:?}, hex:{}", nonce, body, hash);
     Ok((nonce, hash))
+}
+
+pub fn update_hash(preHash: String, hash: String) -> String {
+    let mut hasher = Sha256::new();
+    let new_hash = format!("{}{}", preHash, hash);
+    hasher.input(&new_hash.into_bytes());
+    hasher.result_str()
 }
 
 pub fn u32_to_vec(input: u32) -> Vec<u8> {

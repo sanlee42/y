@@ -33,8 +33,9 @@ impl Peers {
         let _peers = self.peers.clone();
         thread::spawn(move ||
             loop {
-                let msg = _peer.recv(util::process_msg);
-                Peers::broadcast_msg(_peers.clone(), msg);
+                if let Some(msg) = _peer.recv(util::process_msg) {
+                    Peers::broadcast_msg(_peers.clone(), msg);
+                }
             }
         );
         self.peers.write().unwrap().insert(peer.addr, peer);
